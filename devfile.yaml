@@ -17,20 +17,11 @@ components:
       deployment/memoryLimit: 256Mi
       deployment/memoryRequest: 256Mi
       deployment/container-port: 3000
-    kubernetes:
-      uri: deploy/deployment.yaml
-  - name: pvc-grafana
-    attributes:
       persistentVolumeClaim/accessMode: ReadWriteOnce
       persistentVolumeClaim/storageClassName: standard
       persistentVolumeClaim/storage: 1Gi
     kubernetes:
-      apiVersion: v1
-      kind: PersistentVolumeClaim
-      metadata:
-        name: pvc-grafana
-        labels:
-          app: grafana
+      uri: deploy/deployment.yaml
 commands:
   - id: grafana-build
     apply:
