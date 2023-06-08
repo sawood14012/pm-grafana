@@ -1,0 +1,60 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: grafana
+spec:
+  selector:
+    matchLabels:
+      app: grafana
+  replicas: 1
+  template:
+    metadata:
+      labels:
+        app: grafana
+    spec:
+      containers:
+        - name: grafana
+          image: grafana/grafana
+          ports:
+            - containerPort: 3000
+          volumeMounts:
+            - name: dashboards-config
+              mountPath: /etc/grafana/provisioning/dashboards
+            - name: datasources-config
+              mountPath: /etc/grafana/provisioning/datasources
+      volumes:
+        - name: dashboards-config
+          configMap:
+            name: grafana-dashboards-config
+        - name: datasources-config
+          configMap:
+            name: grafana-datasources-config
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: grafana
+spec:
+  selector:
+    app: grafana
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
+  type: ClusterIP
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboards-config
+data:
+  loadtest.json: |-
+    {{ .Files.Get "dashboards/loadtest.json" | nindent 4 }}
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-datasources-config
+data:
+  ds.yml: |-
+    {{ .Files.Get "datasources/ds.yml" | nindent 4 }}

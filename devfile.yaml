@@ -1,0 +1,36 @@
+schemaVersion: 2.2.0
+metadata:
+  name: grafana
+components:
+  - name: grafana-build
+    image:
+      imageName: perf-grafana:latest
+      dockerfile:
+        uri: Dockerfile
+        buildContext: .
+        rootRequired: false
+  - name: grafana-deploy
+    attributes:
+      deployment/replicas: 1
+      deployment/cpuLimit: '500m'
+      deployment/cpuRequest: 200m
+      deployment/memoryLimit: 256Mi
+      deployment/memoryRequest: 128Mi
+      deployment/container-port: 3000
+    kubernetes:
+      uri: deploy/deployment.yaml
+commands:
+  - id: grafana-build
+    apply:
+      component: grafana-build
+  - id: grafana-deploy
+    apply:
+      component: grafana-deploy
+  - id: deploy
+    composite:
+      commands:
+        - grafana-build
+        - grafana-deploy
+      group:
+        kind: deploy
+        isDefault: true
