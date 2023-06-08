@@ -2,6 +2,9 @@ apiVersion: apps/v1
 kind: Deployment
 metadata:
   name: grafana
+  namespace: grafana
+  labels:
+    app: grafana
 spec:
   replicas: 1
   selector:
@@ -14,33 +17,55 @@ spec:
     spec:
       containers:
         - name: grafana
-          image: grafana/grafana:8.0.6
+          image: grafana/grafana:latest
           ports:
-            - name: web
-              containerPort: 3000
+            - containerPort: 3000
           env:
             - name: GF_SECURITY_ADMIN_USER
               value: admin
             - name: GF_SECURITY_ADMIN_PASSWORD
-              value: admin
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-secrets
+                  key: GRAFANA_PASSWORD
+            - name: GF_AWS_S3_BUCKET
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-secrets
+                  key: AWS_S3_BUCKET
+            - name: GF_AWS_S3_REGION
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-secrets
+                  key: AWS_S3_REGION
+            - name: GF_AWS_S3_ACCESS_KEY_ID
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-secrets
+                  key: AWS_ACCESS_KEY_ID
+            - name: GF_AWS_S3_SECRET_ACCESS_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: grafana-secrets
+                  key: AWS_SECRET_ACCESS_KEY
           volumeMounts:
-            - name: grafana-storage
-              mountPath: /var/lib/grafana
+            - mountPath: /var/lib/grafana
+              name: grafana-storage
       volumes:
         - name: grafana-storage
-          persistentVolumeClaim:
-            claimName: grafana-pvc # Specify the name of the PVC to be created
+          emptyDir: {}
+
 ---
+
 apiVersion: v1
 kind: Service
 metadata:
   name: grafana
-  labels:
-    app: grafana
+  namespace: grafana
 spec:
-  ports:
-    - name: web
-      port: 3000
-      targetPort: 3000
   selector:
     app: grafana
+  ports:
+    - protocol: TCP
+      port: 3000
+      targetPort: 3000
