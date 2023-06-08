@@ -12,10 +12,10 @@ components:
   - name: grafana-deploy
     attributes:
       deployment/replicas: 1
-      deployment/cpuLimit: '500m'
-      deployment/cpuRequest: 200m
+      deployment/cpuLimit: '1000m'
+      deployment/cpuRequest: 500m
       deployment/memoryLimit: 256Mi
-      deployment/memoryRequest: 128Mi
+      deployment/memoryRequest: 256Mi
       deployment/container-port: 3000
     kubernetes:
       uri: deploy/deployment.yaml
