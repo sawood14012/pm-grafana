@@ -3,10 +3,10 @@ kind: Deployment
 metadata:
   name: grafana
 spec:
+  replicas: 1
   selector:
     matchLabels:
       app: grafana
-  replicas: 1
   template:
     metadata:
       labels:
@@ -14,47 +14,34 @@ spec:
     spec:
       containers:
         - name: grafana
-          image: grafana/grafana
+          image: grafana/grafana:8.0.6
           ports:
-            - containerPort: 3000
+            - name: web
+              containerPort: 3000
+          env:
+            - name: GF_SECURITY_ADMIN_USER
+              value: admin
+            - name: GF_SECURITY_ADMIN_PASSWORD
+              value: admin
           volumeMounts:
-            - name: dashboards-config
-              mountPath: /etc/grafana/provisioning/dashboards
-            - name: datasources-config
-              mountPath: /etc/grafana/provisioning/datasources
+            - name: grafana-storage
+              mountPath: /var/lib/grafana
       volumes:
-        - name: dashboards-config
-          configMap:
-            name: grafana-dashboards-config
-        - name: datasources-config
-          configMap:
-            name: grafana-datasources-config
+        - name: grafana-storage
+          emptyDir: {}
+
 ---
+
 apiVersion: v1
 kind: Service
 metadata:
   name: grafana
-spec:
-  selector:
+  labels:
     app: grafana
+spec:
   ports:
-    - protocol: TCP
+    - name: web
       port: 3000
       targetPort: 3000
-  type: ClusterIP
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: grafana-dashboards-config
-data:
-  loadtest.json: |-
-    {{ .Files.Get "dashboards/loadtest.json" | nindent 4 }}
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: grafana-datasources-config
-data:
-  ds.yml: |-
-    {{ .Files.Get "datasources/ds.yml" | nindent 4 }}
+  selector:
+    app: grafana
