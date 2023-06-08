@@ -23,28 +23,13 @@ spec:
               value: admin
             - name: GF_SECURITY_ADMIN_PASSWORD
               value: admin
-            - name: MINIO_ACCESS_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: minio-credentials
-                  key: accessKey
-            - name: MINIO_SECRET_KEY
-              valueFrom:
-                secretKeyRef:
-                  name: minio-credentials
-                  key: secretKey
           volumeMounts:
-            - name: minio-storage
+            - name: grafana-storage
               mountPath: /var/lib/grafana
-              subPath: grafana # Subdirectory within the MinIO bucket
       volumes:
-        - name: minio-storage
-          flexVolume:
-            driver: "local/minio"
-            fsType: ext4
-            options:
-              endpoint: "https://minio.mamun.cloud:9000" # Replace with your MinIO endpoint
-              bucket: "grafana-bucket" # Replace with your MinIO bucket name
+        - name: grafana-storage
+          persistentVolumeClaim:
+            claimName: grafana-pvc # Specify the name of the PVC to be created
 ---
 apiVersion: v1
 kind: Service
