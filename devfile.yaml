@@ -19,21 +19,6 @@ components:
       deployment/container-port: 3000
     kubernetes:
       uri: deploy/deployment.yaml
-innerLoop:
-  objects:
-    - apiVersion: v1
-      kind: PersistentVolumeClaim
-      metadata:
-        name: pvc-grafana
-        labels:
-          app: grafana
-      spec:
-        accessModes:
-          - ReadWriteOnce
-        resources:
-          requests:
-            storage: 1Gi
-        storageClassName: standard
 commands:
   - id: grafana-build
     apply:
